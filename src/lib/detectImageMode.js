@@ -1,15 +1,21 @@
 // ─── IMAGE MODE DETECTION ─────────────────────────────────────────────────────
-// Pure function — takes layer values object, returns true if image mode is active.
-// Image mode activates when 2+ visual generation signals are detected in the text.
+// Returns true if values or loadedSpellCategory indicate image generation mode.
 
 const IMAGE_SIGNALS = [
   "aspect ratio","photorealistic","bokeh","depth of field","35mm","film grain",
-  "portrait","render","illustration","cinematic","shot on","lighting","composition",
-  "palette","texture","midjourney","stable diffusion","dall-e","dalle","flux","4k","8k",
-  "hyperrealistic","oil painting","watercolor","pixel art","concept art","diffusion","negative prompt",
+  "portrait","landscape","render","illustration","cinematic","shot on","lighting",
+  "composition","palette","texture","mid-journey","midjourney","stable diffusion",
+  "dall-e","dalle","flux","firefly","4k","8k","hyperrealistic","oil painting",
+  "watercolor","watercolour","pixel art","concept art","diffusion","negative prompt",
 ];
 
-export function detectImageMode(values) {
-  const all = Object.values(values).join(" ").toLowerCase();
-  return IMAGE_SIGNALS.filter(s => all.includes(s)).length >= 2;
+export function detectImageMode(values, loadedSpellCategory) {
+  if (loadedSpellCategory === "Image Generation") return true;
+  const allText = Object.values(values).join(" ").toLowerCase();
+  const hits = IMAGE_SIGNALS.filter(s => allText.includes(s)).length;
+  const anchorEmpty = !(values.anchor || "").trim();
+  const voiceText = (values.voice || "").toLowerCase();
+  const voiceVisual = ["portrait","scene","landscape","shot","lighting","composition","colour","color","render"]
+    .some(w => voiceText.includes(w));
+  return hits >= 2 || (anchorEmpty && voiceVisual && hits >= 1);
 }
